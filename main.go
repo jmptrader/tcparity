@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,8 +17,9 @@ const app = "tcparity"
 var test = flag.Bool("test", false, "Make tcparity start, and exit shortly after. Used for testing.")
 
 func main() {
-	// Set up command line options
+	// Set up command line options and logging
 	flag.Parse()
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// If test mode, trigger quit shortly after startup
 	// Used for CI tests, so that we ensure tcparity starts up and is able to stop gracefully
