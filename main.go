@@ -37,6 +37,8 @@ func main() {
 
 	// Launch manager via goroutine
 	killChan := make(chan bool, 1)
+	exitChan := make(chan int, 1)
+	go manager(killChan, exitChan)
 
 	// Gracefully handle termination via UNIX signal
 	sigChan := make(chan os.Signal, 1)
@@ -58,6 +60,7 @@ func main() {
 	}()
 
 	// Graceful exit
+	code := <-exitChan
 	fmt.Println(app, ": graceful shutdown complete")
-	os.Exit(0)
+	os.Exit(code)
 }
