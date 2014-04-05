@@ -3,7 +3,7 @@ Command tcparity provides an experimental, concurrent TCP load balancer, written
 
 Installation
 
-tcparity can be built using Go 1.1+. It can be downloaded, built, and installed,
+tcparity can be built using Go 1.2+. It can be downloaded, built, and installed,
 simply by running:
 
 	$ go get github.com/mdlayher/tcparity
