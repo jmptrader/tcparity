@@ -11,19 +11,32 @@ type server struct {
 }
 
 // manager is reponsible for coordinating the application and handling the main event loop
-func manager(servers []string, killChan chan bool, exitChan chan int) {
+func manager(algoStr string, servers []string, killChan chan bool, exitChan chan int) {
 	// Channels to handle incoming requests and outgoing responses
 	reqChan := make(chan net.Conn, 1000)
 	resChan := make(chan *bondedConn, 1000)
 
-	// Current balancing algorithm (default to Round-Robin)
+	// Current balancing algorithm, as set by flag
 	var algorithm balanceAlgorithm
-	algorithm = new(roundRobinAlgorithm)
+	switch algoStr {
+	case "random":
+		algorithm = new(randomAlgorithm)
+	case "roundrobin":
+		algorithm = new(roundRobinAlgorithm)
+	default:
+		log.Println(app, ": no such algorithm:", algoStr)
+		exitChan <- 1
+		return
+	}
+
+	// Set servers from slice
 	if err := algorithm.SetServers(servers); err != nil {
 		log.Println(err)
 		exitChan <- 1
+		return
 	}
 
+	log.Println(app, ": algorithm:", algoStr)
 	log.Println(app, ": servers:", servers)
 
 	// Channel to change balancing algorithm used by tcparity
