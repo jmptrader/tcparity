@@ -6,12 +6,18 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
+
+	"github.com/mdlayher/goset"
 )
 
 // app is the name of the application, as printed in logs
 const app = "tcparity"
+
+// servers is a flag which lists comma-separated servers to be used by tcparity
+var servers = flag.String("servers", "", "Comma-separated list of servers to be used by tcparity.")
 
 // test is a flag which causes tcparity to start, and exit shortly after
 var test = flag.Bool("test", false, "Make tcparity start, and exit shortly after. Used for testing.")
@@ -37,10 +43,16 @@ func main() {
 		}()
 	}
 
+	// Create a set of servers to balance between
+	serverSet := set.New()
+	for _, s := range strings.Split(*servers, ",") {
+		serverSet.Add(s)
+	}
+
 	// Launch manager via goroutine
 	killChan := make(chan bool, 1)
 	exitChan := make(chan int, 1)
-	go manager(killChan, exitChan)
+	go manager(serverSet, killChan, exitChan)
 
 	// Gracefully handle termination via UNIX signal
 	sigChan := make(chan os.Signal, 1)
