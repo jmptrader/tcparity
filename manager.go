@@ -3,8 +3,6 @@ package main
 import (
 	"log"
 	"net"
-
-	"github.com/mdlayher/goset"
 )
 
 // server represents a server used for balancing with tcparity
@@ -13,7 +11,7 @@ type server struct {
 }
 
 // manager is reponsible for coordinating the application and handling the main event loop
-func manager(servers *set.Set, killChan chan bool, exitChan chan int) {
+func manager(servers []string, killChan chan bool, exitChan chan int) {
 	// Channels to handle incoming requests and outgoing responses
 	reqChan := make(chan net.Conn, 1000)
 	resChan := make(chan *bondedConn, 1000)

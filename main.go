@@ -57,10 +57,16 @@ func main() {
 		serverSet.Add(s)
 	}
 
+	// Enumerate set into slice of unique servers
+	servers := make([]string, 0)
+	for _, s := range serverSet.Enumerate() {
+		servers = append(servers, s.(string))
+	}
+
 	// Launch manager via goroutine
 	killChan := make(chan bool, 1)
 	exitChan := make(chan int, 1)
-	go manager(serverSet, killChan, exitChan)
+	go manager(servers, killChan, exitChan)
 
 	// Gracefully handle termination via UNIX signal
 	sigChan := make(chan os.Signal, 1)
