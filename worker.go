@@ -18,6 +18,11 @@ func worker(request net.Conn, algorithm balanceAlgorithm, resChan chan *bondedCo
 	target, err := net.DialTimeout("tcp", server.Host, time.Duration(5*time.Second))
 	if err != nil {
 		errChan <- err
+
+		// Close request on failure
+		if err := request.Close(); err != nil {
+			errChan <- err
+		}
 		return
 	}
 
