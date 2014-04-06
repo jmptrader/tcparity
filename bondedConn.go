@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"time"
 )
 
 // bondedConn represents a link between to net.Conn, in which reads/writes from one
@@ -70,6 +71,10 @@ func chanConn(conn net.Conn) chan []byte {
 
 		// Read data from the connection
 		for {
+			// Set deadlines for I/O to occur
+			conn.SetDeadline(time.Now().Add(5*time.Second))
+
+			// Read a buffer
 			n, err := conn.Read(buf)
 			if n > 0 && err == nil {
 				// Copy buffer contents so they cannot be changed during reads
