@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"os/signal"
 	"strings"
@@ -46,6 +47,13 @@ func main() {
 	// Create a set of servers to balance between
 	serverSet := set.New()
 	for _, s := range strings.Split(*servers, ",") {
+		// Attempt to dial server to check connectivity
+		if _, err := net.DialTimeout("tcp", s, time.Duration(5*time.Second)); err != nil {
+			fmt.Println(app, ": failed to dial server:", err)
+			os.Exit(1)
+		}
+
+		// Add server to set
 		serverSet.Add(s)
 	}
 
