@@ -72,7 +72,11 @@ func chanConn(conn net.Conn) chan []byte {
 		// Read data from the connection
 		for {
 			// Set deadlines for I/O to occur
-			conn.SetDeadline(time.Now().Add(5*time.Second))
+			if err := conn.SetDeadline(time.Now().Add(5 * time.Second)); err != nil {
+				log.Println(err)
+				connChan <- nil
+				break
+			}
 
 			// Read a buffer
 			n, err := conn.Read(buf)

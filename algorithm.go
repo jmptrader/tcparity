@@ -36,7 +36,7 @@ func (a *roundRobinAlgorithm) Balance() (*server, error) {
 // SetServers takes an input slice and stores it for use with the Round-Robin Algorithm
 func (a *roundRobinAlgorithm) SetServers(servers []string) error {
 	// Verify servers not empty
-	if len(servers)  == 0 {
+	if len(servers) == 0 {
 		return errors.New("roundrobin: no servers in slice")
 	}
 
