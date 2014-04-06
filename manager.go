@@ -3,13 +3,33 @@ package main
 import (
 	"log"
 	"net"
+
+	"github.com/mdlayher/goset"
 )
 
+// server represents a server used for balancing with tcparity
+type server struct {
+	Host string
+}
+
 // manager is reponsible for coordinating the application and handling the main event loop
-func manager(killChan chan bool, exitChan chan int) {
+func manager(servers *set.Set, killChan chan bool, exitChan chan int) {
 	// Channels to handle incoming requests and outgoing responses
 	reqChan := make(chan net.Conn, 1000)
-	resChan := make(chan net.Conn, 1000)
+	resChan := make(chan *bondedConn, 1000)
+
+	// Current balancing algorithm (default to Round-Robin)
+	var algorithm balanceAlgorithm
+	algorithm = new(roundRobinAlgorithm)
+	if err := algorithm.SetServers(servers); err != nil {
+		log.Println(err)
+		exitChan <- 1
+	}
+
+	log.Println(app, ": servers:", servers)
+
+	// Channel to change balancing algorithm used by tcparity
+	algChan := make(chan *balanceAlgorithm, 0)
 
 	// Channel to receive statistics from the application
 	statChan := make(chan int, 1000)
@@ -40,12 +60,20 @@ func manager(killChan chan bool, exitChan chan int) {
 			break
 		// Handle incoming requests, send them to workers
 		case request := <-reqChan:
-			go worker(request, resChan, errChan)
+			go worker(request, algorithm, resChan, errChan)
 			break
-		// Handle outgoing responses, send them to transporters
+		// Handle outgoing responses, proxy them and transfer data
 		case response := <-resChan:
-			go transporter(response, errChan)
-			_ = response
+			if response != nil {
+				log.Println(response)
+			}
+
+			go response.Proxy(errChan)
+			break
+		// Handle load balancing algorithm changes
+		case algo := <-algChan:
+			log.Println(app, ": setting algorithm:", algo)
+			algorithm = *algo
 			break
 		// Handle application statistic processing
 		case stat := <-statChan:
