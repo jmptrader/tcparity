@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io"
 	"log"
 	"net"
 )
@@ -63,7 +62,7 @@ func (b *bondedConn) String() string {
 // chanConn creates a channel of bytes from a net.Conn, so that the bytes can be read using events
 func chanConn(conn net.Conn) chan []byte {
 	// Create channel
-	connChan := make(chan []byte, 0)
+	connChan := make(chan []byte, 1)
 
 	// Read events from channel
 	go func() {
@@ -72,16 +71,12 @@ func chanConn(conn net.Conn) chan []byte {
 		// Read data from the connection
 		for {
 			n, err := conn.Read(buf)
-			if n > 0 {
+			if n > 0 && err == nil {
 				// Copy buffer contents so they cannot be changed during reads
 				res := make([]byte, n)
 				copy(res, buf[:n])
 				connChan <- res
 			} else {
-				if err != nil && err != io.EOF {
-					log.Println(err)
-				}
-
 				// Else, return nil bytes
 				connChan <- nil
 				break
@@ -93,6 +88,8 @@ func chanConn(conn net.Conn) chan []byte {
 		if err := conn.Close(); err != nil {
 			log.Println(err)
 		}
+
+		return
 	}()
 
 	// Return channel for communication

@@ -26,6 +26,10 @@ func worker(request net.Conn, algorithm balanceAlgorithm, resChan chan *bondedCo
 		return
 	}
 
+	// Set deadlines for I/O to occur
+	request.SetDeadline(time.Now().Add(5*time.Second))
+	target.SetDeadline(time.Now().Add(5*time.Second))
+
 	// Bond the request connection and the target server connection
 	resChan <- &bondedConn{request, target}
 }
