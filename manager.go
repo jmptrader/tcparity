@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"os"
 )
 
 // server represents a server used for balancing with tcparity
@@ -25,14 +26,13 @@ func manager(algoStr string, servers []string, killChan chan bool, exitChan chan
 		algorithm = new(roundRobinAlgorithm)
 	default:
 		log.Println(app, ": no such algorithm:", algoStr)
-		exitChan <- 1
-		return
+		os.Exit(1)
 	}
 
 	// Set servers from slice
 	if err := algorithm.SetServers(servers); err != nil {
 		log.Println(err)
-		exitChan <- 1
+		os.Exit(1)
 		return
 	}
 
